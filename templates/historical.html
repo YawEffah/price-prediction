@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historical Market Data - Ghana Crop Prediction</title>
+    <meta name="description" content="All-time market trends, price ranges, and volatility analytics for Ghanaian crops.">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="bg-brand-500 p-2 rounded-xl shadow-lg shadow-brand-200">
+                        <i class="ph-bold ph-plant text-white text-2xl"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-slate-800">Ghana Crop <span class="text-brand-600">Prediction</span></span>
+                </a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/" class="text-slate-500 hover:text-brand-600 transition-colors py-1">Home</a>
+                    <a href="/historical" class="text-brand-700 font-semibold border-b-2 border-brand-500 py-1">Historical Data</a>
+                    <a href="/about" class="text-slate-500 hover:text-brand-600 transition-colors py-1">About</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <!-- Hero Section -->
+        <div class="mb-12">
+            <h1 class="text-4xl font-black text-slate-800 tracking-tight">Historical Market <span class="text-brand-600">Analytics</span></h1>
+            <p class="text-slate-500 mt-2 text-lg">Deep-dive into All-time highs, lows, and market stability across 17 years of WFP Ghana data.</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-col md:flex-row justify-between gap-4 mb-8">
+            <div class="relative w-full md:w-96">
+                <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="historicalSearch" placeholder="Search commodities..." class="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-6 outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all">
+            </div>
+            <div class="flex gap-2">
+                <button class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
+                    <i class="ph-bold ph-funnel"></i>
+                    Filter
+                </button>
+                <button onclick="exportTableToCSV()" class="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-colors">
+                    <i class="ph-bold ph-export"></i>
+                    Export CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Historical Stats Table -->
+        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+            <div class="overflow-x-auto text-nowrap">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50/50">
+                        <tr>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Commodity Name</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Data Coverage</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Historical Low</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Historical High</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">All-Time Average</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Volatility Index</th>
+                            <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" id="historicalTableBody">
+                        {% for item in summary %}
+                        <tr class="historical-row hover:bg-slate-50/50 transition-colors group" data-name="{{item.name}}">
+                            <td class="px-8 py-6">
+                                <span class="font-bold text-slate-800 group-hover:text-brand-600 transition-colors">{{item.name}}</span>
+                            </td>
+                            <td class="px-8 py-6 text-center">
+                                <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold">{{item.coverage}}</span>
+                            </td>
+                            <td class="px-8 py-6 text-right font-mono text-rose-600 font-bold">GH₵ {{item.min}}</td>
+                            <td class="px-8 py-6 text-right font-mono text-emerald-600 font-bold">GH₵ {{item.max}}</td>
+                            <td class="px-8 py-6 text-right font-mono text-slate-600 font-bold">GH₵ {{item.avg}}</td>
+                            <td class="px-8 py-6 text-center">
+                                {% if item.volatility > 200 %}
+                                <div class="inline-flex items-center gap-2 text-rose-600 bg-rose-50 px-3 py-1 rounded-lg text-xs font-black">
+                                    <i class="ph-fill ph-warning-circle"></i>
+                                    High
+                                </div>
+                                {% elif item.volatility > 100 %}
+                                <div class="inline-flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1 rounded-lg text-xs font-black">
+                                    <i class="ph-fill ph-chart-line-up"></i>
+                                    Moderate
+                                </div>
+                                {% else %}
+                                <div class="inline-flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg text-xs font-black">
+                                    <i class="ph-fill ph-check-circle"></i>
+                                    Stable
+                                </div>
+                                {% endif %}
+                                <span class="block text-[10px] text-slate-400 mt-1 uppercase font-bold">{{item.volatility}}% Spread</span>
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                <a href="/commodity/{{item.id}}" class="inline-flex items-center gap-2 font-bold text-brand-600 hover:text-brand-700 transition-colors">
+                                    Analyze
+                                    <i class="ph-bold ph-arrow-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- No Results State -->
+            <div id="noResults" class="hidden py-24 text-center">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 text-slate-400 mb-4">
+                    <i class="ph-bold ph-magnifying-glass text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700">No matching commodities</h3>
+                <p class="text-slate-500 mt-1">Refine your search to see historical trend data.</p>
+            </div>
+        </div>
+
+        <section class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl"></div>
+                <h3 class="text-2xl font-bold mb-4 relative z-10">Understanding Volatility</h3>
+                <p class="text-slate-400 leading-relaxed mb-6 relative z-10">
+                    The **Volatility Index** measures the spread between historical lows and all-time highs relative to the average price. High volatility often corresponds to seasonal crops dependent on specific rainfall windows or imported goods subject to currency fluctuations.
+                </p>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="flex -space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold">Stable</div>
+                        <div class="w-10 h-10 rounded-full bg-amber-500 border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold">Mod.</div>
+                        <div class="w-10 h-10 rounded-full bg-rose-500 border-2 border-slate-900 flex items-center justify-center text-[10px] font-bold">Vol.</div>
+                    </div>
+                    <span class="text-slate-500 text-xs font-bold uppercase tracking-widest">Risk Indicators</span>
+                </div>
+            </div>
+
+            <div class="bg-brand-600 rounded-[2.5rem] p-10 text-white shadow-xl shadow-brand-100">
+                <h3 class="text-2xl font-bold mb-4">Export Capabilities</h3>
+                <p class="text-brand-100 leading-relaxed mb-6">
+                    Looking to analyze cross-border trends? Our raw historical datasets include trade partner correlations for crops like Cocoa, Rice, and Maize across ECOWAS markets.
+                </p>
+                <a href="/download/full" class="bg-white text-brand-700 px-6 py-3 rounded-2xl font-bold hover:bg-brand-50 transition-all flex items-center gap-2 shadow-lg shadow-brand-900/20">
+                    <i class="ph-bold ph-cloud-arrow-down"></i>
+                    Download Full Dataset
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-20 py-12 bg-white border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center gap-3 grayscale opacity-60">
+                <i class="ph-bold ph-plant text-brand-600 text-xl"></i>
+                <span class="text-lg font-bold text-slate-800 uppercase tracking-tighter">Ghana Crop Prediction</span>
+            </div>
+            <p class="text-slate-400 text-sm">© 2026 Ghana Agriculture Intelligence. Data powered by WFP GHA.</p>
+        </div>
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+            $('#historicalSearch').on('input', function() {
+                const query = $(this).val().toLowerCase().trim();
+                let hasResults = false;
+                
+                $('.historical-row').each(function() {
+                    const name = $(this).data('name').toLowerCase();
+                    if (name.includes(query)) {
+                        $(this).removeClass('hidden');
+                        hasResults = true;
+                    } else {
+                        $(this).addClass('hidden');
+                    }
+                });
+                
+                if (hasResults) {
+                    $('#noResults').addClass('hidden');
+                    $('table').removeClass('hidden');
+                } else {
+                    $('#noResults').removeClass('hidden');
+                    $('table').addClass('hidden');
+                }
+            });
+        });
+
+        function exportTableToCSV() {
+            var csv = [];
+            var rows = document.querySelectorAll("table tr");
+            
+            for (var i = 0; i < rows.length; i++) {
+                // If it's a row (not header) skip if hidden
+                if (rows[i].classList.contains('historical-row') && rows[i].classList.contains('hidden')) continue;
+                
+                var row = [];
+                var cols = rows[i].querySelectorAll("td, th");
+                
+                for (var j = 0; j < cols.length - 1; j++) { // Skip the 'Action' column
+                    var text = cols[j].innerText.split('\n')[0].trim(); // Get main text, avoid multi-line
+                    text = text.replace(/"/g, '""'); // Escape double quotes
+                    row.push('"' + text + '"');
+                }
+                
+                csv.push(row.join(","));
+            }
+
+            // Download CSV file
+            var csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+            var downloadLink = document.createElement("a");
+            downloadLink.download = "gh_market_historical_summary.csv";
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    </script>
+</body>
+</html>

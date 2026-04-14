@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghana Crop Prediction</title>
+    <meta name="description" content="AI-powered crop price prediction for Ghanaian markets using WFP data.">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-brand-500 p-2 rounded-xl shadow-lg shadow-brand-200">
+                        <i class="ph-bold ph-plant text-white text-2xl"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-slate-800">Ghana Crop <span class="text-brand-600">Prediction</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/" class="text-brand-700 font-semibold border-b-2 border-brand-500 py-1">Home</a>
+                    <a href="/historical" class="text-slate-500 hover:text-brand-600 transition-colors py-1">Historical Data</a>
+                    <a href="/about" class="text-slate-500 hover:text-brand-600 transition-colors py-1">About</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Hero / Top Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Trends Section -->
+            <div class="lg:col-span-8 space-y-8">
+                
+                <!-- Top Gainers -->
+                <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="px-6 py-5 border-b border-slate-50 flex items-center justify-between bg-emerald-50/30">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-trend-up text-emerald-600 text-xl"></i>
+                            <h2 class="text-lg font-bold text-slate-800">Top Gainers</h2>
+                            <span class="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Current Trends</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50/50">
+                                <tr>
+                                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Commodity</th>
+                                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Price (per Unit)</th>
+                                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Change</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for item in context['top5'] %}
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-6 py-4 font-semibold text-slate-700">{{item[0]}}</td>
+                                    <td class="px-6 py-4 text-right font-medium text-slate-600">GH₵ {{item[1]}}</td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="inline-flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg">
+                                            <span>{{item[2]}}%</span>
+                                            <i class="ph-bold ph-caret-up"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Top Losers -->
+                <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="px-6 py-5 border-b border-slate-50 flex items-center justify-between bg-rose-50/30">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-trend-down text-rose-600 text-xl"></i>
+                            <h2 class="text-lg font-bold text-slate-800">Top Losers</h2>
+                            <span class="text-xs font-medium text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full">Current Trends</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50/50">
+                                <tr>
+                                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Commodity</th>
+                                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Price (per Unit)</th>
+                                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Change</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for item in context['bottom5'] %}
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-6 py-4 font-semibold text-slate-700">{{item[0]}}</td>
+                                    <td class="px-6 py-4 text-right font-medium text-slate-600">GH₵ {{item[1]}}</td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="inline-flex items-center gap-1 text-rose-600 font-bold bg-rose-50 px-2.5 py-1 rounded-lg">
+                                            <span>{{item[2]}}%</span>
+                                            <i class="ph-bold ph-caret-down"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sidbear / Star Prediction -->
+            <aside class="lg:col-span-4 space-y-6">
+                <div class="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-slate-200">
+                    <!-- Decor elements -->
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-brand-400/10 rounded-full blur-2xl"></div>
+
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center gap-2 mb-8">
+                            <div class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></div>
+                            <span class="text-xs font-bold uppercase tracking-widest text-brand-300">Live Forecast Data</span>
+                        </div>
+
+                        <h3 class="text-2xl font-bold mb-2">Star Commodity <span class="text-brand-400">Prediction</span></h3>
+                        <p class="text-slate-400 text-sm mb-8" id="time">{{context.sixmonths[0][0]}}</p>
+
+                        <!-- Prediction Cards -->
+                        <div class="space-y-4 flex-grow">
+                            <!-- Winner -->
+                            <div class="bg-white/5 rounded-2xl p-5 border border-white/10">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Best Outlook</span>
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <h4 id="crop1" class="text-xl font-bold">{{context.sixmonths[0][1]}}</h4>
+                                        <div class="flex items-center gap-1 text-emerald-400 text-sm font-bold mt-1">
+                                            <i class="ph-bold ph-caret-up"></i>
+                                            <span id="pos-change">{{context.sixmonths[0][3]}}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p id="price1" class="text-2xl font-black">GH₵ {{context.sixmonths[0][2]}}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Loser -->
+                            <div class="bg-white/5 rounded-2xl p-5 border border-white/10">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">Worst Outlook</span>
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <h4 id="crop2" class="text-xl font-bold">{{context.sixmonths[0][4]}}</h4>
+                                        <div class="flex items-center gap-1 text-rose-400 text-sm font-bold mt-1">
+                                            <i class="ph-bold ph-caret-down"></i>
+                                            <span id="neg-change">{{context.sixmonths[0][6]}}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p id="price2" class="text-2xl font-black">GH₵ {{context.sixmonths[0][5]}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="mt-8 text-slate-500 text-[10px] leading-tight">These predictions are generated by our AI model based on historical WFP Ghana market trends and seasonal rainfall patterns.</p>
+                    </div>
+                </div>
+
+                <!-- Banner/Info -->
+                <div class="bg-brand-600 rounded-3xl p-6 text-white shadow-lg shadow-brand-100 flex items-center gap-4">
+                    <div class="bg-white/20 p-3 rounded-2xl">
+                        <i class="ph-duotone ph-lightning text-3xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold">Fast Analysis</h4>
+                        <p class="text-brand-100 text-xs">Real-time market volatility tracking active.</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Explore Grid -->
+        <section class="mt-16">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-800 tracking-tight">Explore Commodities</h2>
+                    <p class="text-slate-500 mt-1">Detailed historical trends and future forecasts for all crops.</p>
+                </div>
+                <!-- Search Mockup -->
+                <div class="relative">
+                    <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="cropSearch" placeholder="Search crops..." class="bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-6 outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all w-full md:w-64">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="commodityGrid">
+                {% for name, path in commodity_dict.items() %}
+                <a href="/commodity/{{name}}" class="commodity-card group" data-name="{{ name.replace('_', ' ').capitalize() }}">
+                    <div class="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand-500/5 hover:-translate-y-1 transition-all duration-300">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                                <i class="ph-bold ph-leaf text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 group-hover:text-brand-600 transition-colors">{{ name.replace('_', ' ').capitalize() }}</h3>
+                                <div class="flex items-center gap-1 text-slate-400 text-xs mt-1">
+                                    <span>View Details</span>
+                                    <i class="ph-bold ph-arrow-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+                
+                <div id="noResults" class="hidden col-span-full py-12 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 text-slate-400 mb-4">
+                        <i class="ph-bold ph-magnifying-glass text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-700">No commodities found</h3>
+                    <p class="text-slate-500 text-sm mt-1">Try searching for a different crop name.</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div id="paginationContainer" class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 py-8 border-t border-slate-100">
+                <p class="text-sm text-slate-500 font-medium" id="pageInfo">Showing 1 to 12 of 26 crops</p>
+                <div class="flex items-center gap-2">
+                    <button id="prevPage" class="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-brand-600 hover:border-brand-500 disabled:opacity-30 disabled:pointer-events-none transition-all">
+                        <i class="ph-bold ph-caret-left"></i>
+                    </button>
+                    <button id="nextPage" class="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-brand-600 hover:border-brand-500 disabled:opacity-30 disabled:pointer-events-none transition-all">
+                        <i class="ph-bold ph-caret-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-20 py-12 bg-white border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center gap-3 grayscale opacity-60">
+                <i class="ph-bold ph-plant text-brand-600 text-xl"></i>
+                <span class="text-lg font-bold text-slate-800 uppercase tracking-tighter">Ghana Crop Prediction</span>
+            </div>
+            <p class="text-slate-400 text-sm">© 2026 Ghana Agriculture Intelligence. Data powered by WFP GHA.</p>
+        </div>
+    </footer>
+
+    <!-- AJAX Ticker Logic -->
+    <script>
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        async function updateTicker(i) {
+            $('#time').load('/ticker/0/' + i);
+            await sleep(200);
+            $('#crop1').load('/ticker/1/' + i);
+            await sleep(200);
+            $('#price1').load('/ticker/2/' + i);
+            await sleep(200);
+            $('#pos-change').load('/ticker/3/' + i);
+            await sleep(200);
+            $('#crop2').load('/ticker/4/' + i);
+            await sleep(200);
+            $('#price2').load('/ticker/5/' + i);
+            await sleep(200);
+            $('#neg-change').load('/ticker/6/' + i);
+        }
+
+        let tickerIdx = 0;
+        setInterval(() => {
+            tickerIdx = (tickerIdx + 1) % 5;
+            updateTicker(tickerIdx);
+        }, 4000);
+
+        // Search & Pagination Logic
+        $(document).ready(function() {
+            let currentPage = 1;
+            const pageSize = 12;
+
+            function applyFilters(resetPage = false) {
+                if (resetPage) currentPage = 1;
+
+                const query = $('#cropSearch').val().toLowerCase().trim();
+                const matchedCards = [];
+
+                // 1. Determine matches for search
+                $('.commodity-card').each(function() {
+                    const name = $(this).data('name').toLowerCase();
+                    if (name.includes(query)) {
+                        matchedCards.push(this);
+                    }
+                    $(this).addClass('hidden'); // Hide all initially
+                });
+
+                const totalMatches = matchedCards.length;
+                const totalPages = Math.ceil(totalMatches / pageSize);
+
+                if (totalMatches === 0) {
+                    $('#noResults').removeClass('hidden');
+                    $('#paginationContainer').addClass('hidden');
+                } else {
+                    $('#noResults').addClass('hidden');
+                    $('#paginationContainer').removeClass('hidden');
+
+                    // 2. Slice for current page
+                    const startIdx = (currentPage - 1) * pageSize;
+                    const endIdx = Math.min(startIdx + pageSize, totalMatches);
+
+                    for (let i = startIdx; i < endIdx; i++) {
+                        $(matchedCards[i]).removeClass('hidden');
+                    }
+
+                    // 3. Update UI
+                    $('#pageInfo').text(`Showing ${startIdx + 1} to ${endIdx} of ${totalMatches} crops`);
+                    $('#prevPage').prop('disabled', currentPage === 1);
+                    $('#nextPage').prop('disabled', currentPage === totalPages || totalPages === 0);
+                }
+            }
+
+            // Listeners
+            $('#cropSearch').on('input', function() {
+                applyFilters(true);
+            });
+
+            $('#prevPage').on('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    applyFilters();
+                    window.scrollTo({ top: $('#commodityGrid').offset().top - 100, behavior: 'smooth' });
+                }
+            });
+
+            $('#nextPage').on('click', function() {
+                currentPage++;
+                applyFilters();
+                window.scrollTo({ top: $('#commodityGrid').offset().top - 100, behavior: 'smooth' });
+            });
+
+            // Initial render
+            applyFilters();
+        });
+    </script>
+</body>
+</html>

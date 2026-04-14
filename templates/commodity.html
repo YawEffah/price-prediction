@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghana Crop Prediction - {{context.name}}</title>
+    <meta name="description" content="Detailed price forecast and trends for {{context.name}} in Ghana.">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="bg-brand-500 p-2 rounded-xl shadow-lg shadow-brand-200">
+                        <i class="ph-bold ph-plant text-white text-2xl"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-slate-800">Ghana Crop <span class="text-brand-600">Prediction</span></span>
+                </a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="/" class="text-slate-500 hover:text-brand-600 transition-colors py-1">Home</a>
+                    <a href="/historical" class="text-slate-500 hover:text-brand-600 transition-colors py-1">Historical Data</a>
+                    <a href="/about" class="text-slate-500 hover:text-brand-600 transition-colors py-1">About</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Hero Section -->
+        <div class="relative rounded-[2.5rem] overflow-hidden bg-slate-900 h-[300px] mb-8 shadow-2xl">
+            <img src="{{context.image_url}}" class="w-full h-full object-cover opacity-60" alt="{{context.name}}">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+            <div class="absolute bottom-12 left-12">
+                <nav class="flex mb-4 text-brand-300 text-sm font-medium gap-2 items-center">
+                    <a href="/" class="hover:text-white">Home</a>
+                    <i class="ph-bold ph-caret-right text-xs"></i>
+                    <span class="text-white/60">Commodities</span>
+                </nav>
+                <h1 class="text-5xl font-black text-white tracking-tighter">{{context.name}}</h1>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Key Stats & Summary -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Quick Info Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-brand-50 p-3 rounded-2xl text-brand-600">
+                                <i class="ph-bold ph-currency-circle-dollar text-2xl"></i>
+                            </div>
+                            <span class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Current Market Price</span>
+                        </div>
+                        <p class="text-4xl font-black text-slate-800">GH₵ {{context.current_price}}</p>
+                        <p class="text-slate-400 text-sm mt-1">Weighted average across Ghana markets</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-amber-50 p-3 rounded-2xl text-amber-600">
+                                <i class="ph-bold ph-map-pin text-2xl"></i>
+                            </div>
+                            <span class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Prime Growing Locations</span>
+                        </div>
+                        <p class="text-lg font-bold text-slate-800">{{context.prime_loc}}</p>
+                        <p class="text-slate-400 text-sm mt-1">High-yield harvesting regions</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-indigo-50 p-3 rounded-2xl text-indigo-600">
+                                <i class="ph-bold ph-package text-2xl"></i>
+                            </div>
+                            <span class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Crop Classification</span>
+                        </div>
+                        <p class="text-lg font-bold text-slate-800">{{context.type_c}}</p>
+                        <p class="text-slate-400 text-sm mt-1">Standard agricultural category</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-emerald-50 p-3 rounded-2xl text-emerald-600">
+                                <i class="ph-bold ph-globe text-2xl"></i>
+                            </div>
+                            <span class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Export Destinations</span>
+                        </div>
+                        <p class="text-lg font-bold text-slate-800">{{context.export}}</p>
+                        <p class="text-slate-400 text-sm mt-1">Top international trade partners</p>
+                    </div>
+                </div>
+
+                <!-- Forecast Table -->
+                <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="px-6 py-5 border-b border-slate-50 flex items-center gap-2 bg-slate-50/50">
+                        <i class="ph-bold ph-calendar-check text-brand-600 text-xl"></i>
+                        <h2 class="text-lg font-bold text-slate-800">12-Month Forecast Trends</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50/10">
+                                <tr>
+                                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Month</th>
+                                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Predicted Price</th>
+                                    <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Proj. Change</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for item in context.forecast_values %}
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-6 py-4 font-semibold text-slate-700">{{item[0]}}</td>
+                                    <td class="px-6 py-4 text-right font-medium text-slate-600 hover:text-brand-600">GH₵ {{item[1]}}</td>
+                                    <td class="px-6 py-4 text-right">
+                                        {% if item[2] >= 0 %}
+                                        <div class="inline-flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg text-sm">
+                                            <span>+{{item[2]}}%</span>
+                                            <i class="ph-bold ph-caret-up"></i>
+                                        </div>
+                                        {% else %}
+                                        <div class="inline-flex items-center gap-1 text-rose-600 font-bold bg-rose-50 px-2.5 py-1 rounded-lg text-sm">
+                                            <span>{{item[2]}}%</span>
+                                            <i class="ph-bold ph-caret-down"></i>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Sidebar / Forecast Highlights & Charts -->
+            <aside class="space-y-6">
+                <!-- Forecast Summary -->
+                <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl">
+                    <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                        <i class="ph-bold ph-lightning text-brand-400"></i>
+                        Price Extremes
+                    </h3>
+                    <div class="space-y-6">
+                        <div class="bg-white/5 p-5 rounded-2xl border border-white/10">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Expected Minimum</span>
+                            <div class="flex justify-between items-baseline">
+                                <h4 class="text-2xl font-black text-rose-400">GH₵ {{context.min_crop[1]}}</h4>
+                                <span class="text-slate-400 text-sm">{{context.min_crop[0]}}</span>
+                            </div>
+                        </div>
+                        <div class="bg-white/5 p-5 rounded-2xl border border-white/10">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Expected Maximum</span>
+                            <div class="flex justify-between items-baseline">
+                                <h4 class="text-2xl font-black text-emerald-400">GH₵ {{context.max_crop[1]}}</h4>
+                                <span class="text-slate-400 text-sm">{{context.max_crop[0]}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-8 text-slate-500 text-[10px] leading-relaxed italic">Extreme projections are based on cyclical volatility observed in previous harvest seasons.</p>
+                </div>
+
+                <!-- Small Visual Charts -->
+                <section class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                    <h4 class="text-sm font-bold text-slate-800 mb-4 px-2">Prediction Window</h4>
+                    <div class="h-[200px] w-full">
+                        <canvas id="chartjs-0"></canvas>
+                    </div>
+                </section>
+
+                <section class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                    <h4 class="text-sm font-bold text-slate-800 mb-4 px-2">Historical Accuracy</h4>
+                    <div class="h-[200px] w-full">
+                        <canvas id="chartjs-1"></canvas>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="mt-20 py-12 bg-white border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center gap-3 grayscale opacity-60">
+                <i class="ph-bold ph-plant text-brand-600 text-xl"></i>
+                <span class="text-lg font-bold text-slate-800 uppercase tracking-tighter">Ghana Crop Prediction</span>
+            </div>
+            <p class="text-slate-400 text-sm">© 2026 Ghana Agriculture Intelligence. Data powered by WFP GHA.</p>
+        </div>
+    </footer>
+
+    <script>
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: { top: 10, bottom: 0 }
+            },
+            legend: { display: false },
+            elements: {
+                line: { tension: 0.4, borderWidth: 3, borderColor: '#10b981', fill: 'start', backgroundColor: 'rgba(16, 185, 129, 0.05)' },
+                point: { radius: 0, hoverRadius: 6, hitRadius: 12, backgroundColor: '#10b981' }
+            },
+            scales: {
+                xAxes: [{ gridLines: { display: false }, ticks: { fontColor: '#94a3b8', fontSize: 10 } }],
+                yAxes: [{ gridLines: { color: '#f1f5f9' }, ticks: { fontColor: '#94a3b8', fontSize: 10, suggestedMin: 0 } }]
+            },
+            tooltips: {
+                mode: 'index', intersect: false, backgroundColor: '#1e293b', titleFontFamily: 'Inter', bodyFontFamily: 'Inter', cornerRadius: 12, padding: 12
+            }
+        };
+
+        new Chart(document.getElementById("chartjs-0"), {
+            type: "line",
+            data: {
+                labels: {{context.forecast_x|safe}},
+                datasets: [{ label: "Predicted Price", data: {{context.forecast_y}} }]
+            },
+            options: chartOptions
+        });
+
+        new Chart(document.getElementById("chartjs-1"), {
+            type: "line",
+            data: {
+                labels: {{context.previous_x|safe}},
+                datasets: [{ 
+                    label: "Historical Price", 
+                    data: {{context.previous_y}}, 
+                    borderColor: '#6366f1', 
+                    backgroundColor: 'rgba(99, 102, 241, 0.05)' 
+                }]
+            },
+            options: {
+                ...chartOptions,
+                elements: {
+                    ...chartOptions.elements,
+                    line: { ...chartOptions.elements.line, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.05)' },
+                    point: { ...chartOptions.elements.point, backgroundColor: '#6366f1' }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
