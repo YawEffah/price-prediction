@@ -139,9 +139,11 @@
 
                 <!-- Forecast Table -->
                 <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="px-6 py-5 border-b border-slate-50 flex items-center gap-2 bg-slate-50/50">
-                        <i class="ph-bold ph-calendar-check text-brand-600 text-xl"></i>
-                        <h2 class="text-lg font-bold text-slate-800">12-Month Forecast Trends</h2>
+                    <div class="px-6 py-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-calendar-check text-brand-600 text-xl"></i>
+                            <h2 id="forecast-table-title" class="text-lg font-bold text-slate-800">12-Month Forecast Trends</h2>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
@@ -152,11 +154,11 @@
                                     <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Proj. Change</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
+                            <tbody id="forecast-table-body" class="divide-y divide-slate-100">
                                 {% for item in context.forecast_values %}
                                 <tr class="hover:bg-slate-50/50 transition-colors">
                                     <td class="px-6 py-4 font-semibold text-slate-700">{{item[0]}}</td>
-                                    <td class="px-6 py-4 text-right font-medium text-slate-600 hover:text-brand-600">GH₵ {{item[1]}}</td>
+                                    <td class="px-6 py-4 text-right font-medium text-slate-600">GH₵ {{item[1]}}</td>
                                     <td class="px-6 py-4 text-right">
                                         {% if item[2] >= 0 %}
                                         <div class="inline-flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg text-sm">
@@ -190,15 +192,15 @@
                         <div class="bg-white/5 p-5 rounded-2xl border border-white/10">
                             <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Expected Minimum</span>
                             <div class="flex justify-between items-baseline">
-                                <h4 class="text-2xl font-black text-rose-400">GH₵ {{context.min_crop[1]}}</h4>
-                                <span class="text-slate-400 text-sm">{{context.min_crop[0]}}</span>
+                                <h4 id="min-price-display" class="text-2xl font-black text-rose-400">GH₵ {{context.min_crop[1]}}</h4>
+                                <span id="min-month-display" class="text-slate-400 text-sm">{{context.min_crop[0]}}</span>
                             </div>
                         </div>
                         <div class="bg-white/5 p-5 rounded-2xl border border-white/10">
                             <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Expected Maximum</span>
                             <div class="flex justify-between items-baseline">
-                                <h4 class="text-2xl font-black text-emerald-400">GH₵ {{context.max_crop[1]}}</h4>
-                                <span class="text-slate-400 text-sm">{{context.max_crop[0]}}</span>
+                                <h4 id="max-price-display" class="text-2xl font-black text-emerald-400">GH₵ {{context.max_crop[1]}}</h4>
+                                <span id="max-month-display" class="text-slate-400 text-sm">{{context.max_crop[0]}}</span>
                             </div>
                         </div>
                     </div>
@@ -207,14 +209,26 @@
 
                 <!-- Small Visual Charts -->
                 <section class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-                    <h4 class="text-sm font-bold text-slate-800 mb-4 px-2">Prediction Window</h4>
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-sm font-bold text-slate-800 px-2">Prediction Window</h4>
+                        <div class="flex bg-slate-100 p-1 rounded-xl gap-1">
+                            <button onclick="updateForecast(3)" class="window-btn px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all hover:bg-white text-slate-500">3M</button>
+                            <button onclick="updateForecast(6)" class="window-btn px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all hover:bg-white text-slate-500">6M</button>
+                            <button onclick="updateForecast(12)" class="window-btn px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all bg-white shadow-sm text-brand-600">12M</button>
+                        </div>
+                    </div>
                     <div class="h-[200px] w-full">
                         <canvas id="chartjs-0"></canvas>
                     </div>
                 </section>
 
                 <section class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-                    <h4 class="text-sm font-bold text-slate-800 mb-4 px-2">Historical Accuracy</h4>
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-sm font-bold text-slate-800 px-2">Historical Accuracy</h4>
+                        <div class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full text-[10px] font-black tracking-tight">
+                            {{context.historical_accuracy.accuracy}}% ACCURACY
+                        </div>
+                    </div>
                     <div class="h-[200px] w-full">
                         <canvas id="chartjs-1"></canvas>
                     </div>
@@ -233,8 +247,16 @@
         </div>
     </footer>
 
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="fixed bottom-8 right-8 bg-brand-600 text-white p-4 rounded-2xl shadow-2xl shadow-brand-200 opacity-0 invisible transition-all duration-300 hover:bg-brand-700 hover:-translate-y-1 z-[100]">
+        <i class="ph-bold ph-caret-up text-xl"></i>
+    </button>
+
     <script>
-        const chartOptions = {
+        var predictionChart;
+        var accuracyChart;
+        
+        var chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
             layout: {
@@ -254,35 +276,122 @@
             }
         };
 
-        new Chart(document.getElementById("chartjs-0"), {
-            type: "line",
-            data: {
-                labels: {{context.forecast_x|safe}},
-                datasets: [{ label: "Predicted Price", data: {{context.forecast_y}} }]
-            },
-            options: chartOptions
-        });
-
-        new Chart(document.getElementById("chartjs-1"), {
-            type: "line",
-            data: {
-                labels: {{context.previous_x|safe}},
-                datasets: [{ 
-                    label: "Historical Price", 
-                    data: {{context.previous_y}}, 
-                    borderColor: '#6366f1', 
-                    backgroundColor: 'rgba(99, 102, 241, 0.05)' 
-                }]
-            },
-            options: {
-                ...chartOptions,
-                elements: {
-                    ...chartOptions.elements,
-                    line: { ...chartOptions.elements.line, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.05)' },
-                    point: { ...chartOptions.elements.point, backgroundColor: '#6366f1' }
-                }
+        function initCharts() {
+            var ctx0 = document.getElementById("chartjs-0");
+            var ctx1 = document.getElementById("chartjs-1");
+            
+            if (ctx0) {
+                predictionChart = new Chart(ctx0, {
+                    type: "line",
+                    data: {
+                        labels: {{context.forecast_x|safe}},
+                        datasets: [{ label: "Predicted Price", data: {{context.forecast_y}} }]
+                    },
+                    options: chartOptions
+                });
             }
-        });
+
+            if (ctx1) {
+                accuracyChart = new Chart(ctx1, {
+                    type: "line",
+                    data: {
+                        labels: {{context.historical_accuracy.labels|safe}},
+                        datasets: [
+                            { 
+                                label: "Actual Price", 
+                                data: {{context.historical_accuracy.actuals}}, 
+                                borderColor: '#6366f1', 
+                                backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                                pointRadius: 2,
+                                borderWidth: 2
+                            },
+                            { 
+                                label: "Model Prediction", 
+                                data: {{context.historical_accuracy.predictions}}, 
+                                borderColor: '#f59e0b', 
+                                backgroundColor: 'transparent',
+                                borderDash: [5, 5],
+                                pointRadius: 0,
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        layout: { padding: { top: 10, bottom: 0 } },
+                        legend: { display: true, position: 'bottom', labels: { boxWidth: 12, fontSize: 8, fontColor: '#94a3b8' } },
+                        elements: {
+                            line: { tension: 0.4, borderWidth: 2, borderColor: '#6366f1', fill: 'start', backgroundColor: 'rgba(99, 102, 241, 0.05)' },
+                            point: { radius: 0, hoverRadius: 6, hitRadius: 12, backgroundColor: '#6366f1' }
+                        },
+                        scales: {
+                            xAxes: [{ gridLines: { display: false }, ticks: { fontColor: '#94a3b8', fontSize: 10 } }],
+                            yAxes: [{ gridLines: { color: '#f1f5f9' }, ticks: { fontColor: '#94a3b8', fontSize: 10, suggestedMin: 0 } }]
+                        },
+                        tooltips: {
+                            mode: 'index', intersect: false, backgroundColor: '#1e293b', titleFontFamily: 'Inter', bodyFontFamily: 'Inter', cornerRadius: 12, padding: 12
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateForecast(months) {
+            // Update UI state
+            var buttons = document.querySelectorAll('.window-btn');
+            buttons.forEach(function(btn) {
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-brand-600');
+                btn.classList.add('text-slate-500');
+                if (btn.innerText === months + 'M') {
+                    btn.classList.add('bg-white', 'shadow-sm', 'text-brand-600');
+                    btn.classList.remove('text-slate-500');
+                }
+            });
+
+            fetch('/api/forecast/{{context.name}}?months=' + months)
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    // Update Chart
+                    if (predictionChart) {
+                        predictionChart.data.labels = data.forecast_x;
+                        predictionChart.data.datasets[0].data = data.forecast_y;
+                        predictionChart.update();
+                    }
+
+                    // Update Table
+                    document.getElementById('forecast-table-body').innerHTML = data.table_html;
+                    document.getElementById('forecast-table-title').innerText = months + '-Month Forecast Trends';
+
+                    // Update Extremes
+                    document.getElementById('max-price-display').innerText = 'GH₵ ' + data.max_price;
+                    document.getElementById('max-month-display').innerText = data.max_month;
+                    document.getElementById('min-price-display').innerText = 'GH₵ ' + data.min_price;
+                    document.getElementById('min-month-display').innerText = data.min_month;
+                })
+                .catch(function(error) {
+                    console.error('Error fetching forecast:', error);
+                });
+        }
+
+        // Initialize on load
+        window.onload = initCharts;
+
+        // Scroll to Top Logic
+        var scrollBtn = document.getElementById("scrollToTop");
+        window.onscroll = function() {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                scrollBtn.classList.remove("opacity-0", "invisible");
+                scrollBtn.classList.add("opacity-100", "visible");
+            } else {
+                scrollBtn.classList.remove("opacity-100", "visible");
+                scrollBtn.classList.add("opacity-0", "invisible");
+            }
+        };
+        scrollBtn.onclick = function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
     </script>
+
 </body>
 </html>

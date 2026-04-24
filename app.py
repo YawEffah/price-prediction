@@ -101,14 +101,15 @@ def download_full():
 @app.route('/commodity/<name>')
 def crop_profile(name):
     max_crop, min_crop, forecast_crop_values = TwelveMonthsForecast(name)
-    prev_crop_values = TwelveMonthPrevious(name)
+    # Get historical accuracy data (last 24 months of available actual data)
+    accuracy_data = HistoricalAccuracyData(name)
+    
     forecast_x = [i[0] for i in forecast_crop_values]
     forecast_y = [i[1] for i in forecast_crop_values]
-    previous_x = [i[0] for i in prev_crop_values]
-    previous_y = [i[1] for i in prev_crop_values]
-    current_price = CurrentMonth(name)
     
+    current_price = CurrentMonth(name)
     crop_data = crops.crop(name)
+    
     context = {
         "name": name,
         "max_crop": max_crop,
@@ -116,9 +117,7 @@ def crop_profile(name):
         "forecast_values": forecast_crop_values,
         "forecast_x": str(forecast_x),
         "forecast_y": forecast_y,
-        "previous_values": prev_crop_values,
-        "previous_x": previous_x,
-        "previous_y": previous_y,
+        "historical_accuracy": accuracy_data,
         "current_price": current_price,
         "image_url": crop_data[0],
         "prime_loc": crop_data[1],
@@ -126,6 +125,42 @@ def crop_profile(name):
         "export": crop_data[3]
     }
     return render_template('commodity.html', context=context)
+
+@app.route('/api/forecast/<name>')
+def api_forecast(name):
+    from flask import request, jsonify
+    months = int(request.args.get('months', 12))
+    max_crop, min_crop, forecast_values = TwelveMonthsForecast(name, months=months)
+    
+    # Format table rows for the frontend
+    table_html = ""
+    for item in forecast_values:
+        change_class = "text-emerald-600 bg-emerald-50" if item[2] >= 0 else "text-rose-600 bg-rose-50"
+        change_icon = "ph-caret-up" if item[2] >= 0 else "ph-caret-down"
+        change_prefix = "+" if item[2] >= 0 else ""
+        
+        table_html += f"""
+        <tr class="hover:bg-slate-50/50 transition-colors">
+            <td class="px-6 py-4 font-semibold text-slate-700">{item[0]}</td>
+            <td class="px-6 py-4 text-right font-medium text-slate-600">GH₵ {item[1]}</td>
+            <td class="px-6 py-4 text-right">
+                <div class="inline-flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg text-sm {change_class}">
+                    <span>{change_prefix}{item[2]}%</span>
+                    <i class="ph-bold {change_icon}"></i>
+                </div>
+            </td>
+        </tr>
+        """
+
+    return jsonify({
+        "forecast_x": [i[0] for i in forecast_values],
+        "forecast_y": [i[1] for i in forecast_values],
+        "max_price": max_crop[1],
+        "max_month": max_crop[0],
+        "min_price": min_crop[1],
+        "min_month": min_crop[0],
+        "table_html": table_html
+    })
 
 @app.route('/ticker/<item>/<number>')
 @cross_origin(origin='localhost', headers=['Content-Type', 'Authorization'])
@@ -157,10 +192,10 @@ def get_historical_summary():
         summary.append({
             "name": name.replace('_', ' ').capitalize(),
             "id": name,
-            "min": round(min_p, 2),
-            "max": round(max_p, 2),
-            "avg": round(avg_p, 2),
-            "volatility": round(volatility, 1),
+            "min": round(float(min_p), 2),
+            "max": round(float(max_p), 2),
+            "avg": round(float(avg_p), 2),
+            "volatility": round(float(volatility), 1),
             "coverage": f"{start_year} - {end_year}"
         })
     return summary
@@ -279,9 +314,9 @@ def CurrentMonth(name):
     
     commodity = next((c for c in commodity_list if c.getCropName() == name), commodity_list[0])
     current_price = commodity.getPredictedValue([float(current_month), current_year, current_rainfall])
-    return current_price
+    return round(float(current_price), 3)
 
-def TwelveMonthsForecast(name):
+def TwelveMonthsForecast(name, months=12):
     current_month = datetime.now().month
     current_year = datetime.now().year
     current_rainfall = annual_rainfall[current_month - 1]
@@ -289,10 +324,10 @@ def TwelveMonthsForecast(name):
     commodity = next((c for c in commodity_list if c.getCropName() == name), commodity_list[0])
     
     month_with_year = []
-    for i in range(1, 13):
+    for i in range(1, months + 1):
         m = current_month + i
         y = current_year
-        if m > 12:
+        while m > 12:
             m -= 12
             y += 1
         month_with_year.append((m, y, annual_rainfall[m - 1]))
@@ -321,12 +356,53 @@ def TwelveMonthsForecast(name):
         m, y, r = month_with_year[i]
         change = ((pred - current_price) * 100) / current_price
         time_str = datetime(y, m, 1).strftime("%b %y")
-        crop_price.append([time_str, round(pred, 2), round(change, 2)])
+        crop_price.append([time_str, round(float(pred), 2), round(float(change), 2)])
         
-    max_crop = [crop_price[max_idx][0], round(max_val, 2)]
-    min_crop = [crop_price[min_idx][0], round(min_val, 2)]
+    max_crop = [crop_price[max_idx][0], round(float(max_val), 2)]
+    min_crop = [crop_price[min_idx][0], round(float(min_val), 2)]
     
     return max_crop, min_crop, crop_price
+
+def HistoricalAccuracyData(name):
+    commodity = next((c for c in commodity_list if c.getCropName() == name), commodity_list[0])
+    
+    # Extract last 24 available months from X and Y
+    # X columns: Month, Year, Rainfall
+    # Y: WPI
+    n_points = min(24, len(commodity.X))
+    last_x = commodity.X[-n_points:]
+    last_y = commodity.Y[-n_points:]
+    
+    labels = []
+    actuals = []
+    predicts = []
+    errors = []
+    
+    for i in range(n_points):
+        m, y, r = int(last_x[i][0]), int(last_x[i][1]), last_x[i][2]
+        actual = last_y[i]
+        
+        # Force prediction instead of lookup for accuracy check
+        pred = commodity.regressor.predict(np.array([float(m), float(y), r]).reshape(1, 3))[0]
+        
+        time_str = datetime(y, m, 1).strftime("%b %y")
+        labels.append(time_str)
+        actuals.append(round(float(actual), 2))
+        predicts.append(round(float(pred), 2))
+        
+        # MAPE calculation part
+        if actual != 0:
+            errors.append(abs((float(actual) - float(pred)) / float(actual)))
+            
+    avg_error = np.mean(errors) if errors else 0
+    accuracy = round((1 - float(avg_error)) * 100, 1)
+    
+    return {
+        "labels": labels,
+        "actuals": actuals,
+        "predictions": predicts,
+        "accuracy": accuracy
+    }
 
 def TwelveMonthPrevious(name):
     commodity = next((c for c in commodity_list if c.getCropName() == name), commodity_list[0])

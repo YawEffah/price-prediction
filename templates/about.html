@@ -176,7 +176,27 @@
             </div>
             <p class="text-slate-400 text-sm">© 2026 Ghana Agriculture Intelligence. Data powered by WFP GHA.</p>
         </div>
-    </footer>
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="fixed bottom-8 right-8 bg-brand-600 text-white p-4 rounded-2xl shadow-2xl shadow-brand-200 opacity-0 invisible transition-all duration-300 hover:bg-brand-700 hover:-translate-y-1 z-[100]">
+        <i class="ph-bold ph-caret-up text-xl"></i>
+    </button>
+
+    <script>
+        // Scroll to Top Logic
+        var scrollBtn = document.getElementById("scrollToTop");
+        window.onscroll = function() {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                scrollBtn.classList.remove("opacity-0", "invisible");
+                scrollBtn.classList.add("opacity-100", "visible");
+            } else {
+                scrollBtn.classList.remove("opacity-100", "visible");
+                scrollBtn.classList.add("opacity-0", "invisible");
+            }
+        };
+        scrollBtn.onclick = function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+    </script>
 
 </body>
 </html>
